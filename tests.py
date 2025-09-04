@@ -127,3 +127,46 @@ def test_correct_selected_choices_exceeds_max_selections_exception():
     
     with pytest.raises(Exception, match='Cannot select more than 2 choices'):
         question.correct_selected_choices([choice1.id, choice2.id, choice3.id])
+
+# Uso de Fixtures
+
+@pytest.fixture
+def question_with_multiple_choices():
+    question = Question(title='Math Question', points=10, max_selections=2)
+    question.add_choice('2 + 2 = 4', True)
+    question.add_choice('3 + 3 = 9', False)
+    question.add_choice('10 - 2 = 8', True)
+    question.add_choice('5 - 3 = 3', False)
+    return question
+
+
+@pytest.fixture
+def single_choice_question():
+    question = Question(title='Single Choice Question', points=5, max_selections=1)
+    question.add_choice('The Sky is Blue', True)
+    question.add_choice('The Apple is Blue', False)
+    question.add_choice('The Banana is Blue', False)
+    return question
+
+# Novo Teste Com Fixture 1
+def test_partial_correct_selections_with_mixed_answers(question_with_multiple_choices):
+    selected_ids = [1, 2]
+    
+    result = question_with_multiple_choices.correct_selected_choices(selected_ids)
+    
+    assert result == [1]
+    assert len(result) == 1
+    assert 2 not in result
+
+# Novo Teste Com Fixture 2
+def test_single_correct_choice_scoring_scenario(single_choice_question):
+    correct_selection = single_choice_question.correct_selected_choices([1])
+    assert correct_selection == [1]
+    assert len(correct_selection) == 1
+    
+    wrong_selection = single_choice_question.correct_selected_choices([2])
+    assert wrong_selection == []
+    assert len(wrong_selection) == 0
+    
+    with pytest.raises(Exception, match='Cannot select more than 1 choices'):
+        single_choice_question.correct_selected_choices([1, 2])
